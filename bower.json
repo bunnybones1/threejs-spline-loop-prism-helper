@@ -1,0 +1,16 @@
+{
+  "name": "threejs-spline-loop-prism-helper",
+  "main": "index.js",
+  "version": "1.0.0",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "devDependencies": {
+    "three.js": "*"
+  }
+}

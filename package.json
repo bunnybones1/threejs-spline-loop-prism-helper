@@ -1,0 +1,38 @@
+{
+  "name": "threejs-spline-loop-prism-helper",
+  "version": "1.0.0",
+  "description": "A Spline object with the ability to sample points in a seamless loop. Linear caching available for speed increase.",
+  "main": "index.js",
+  "license": "MIT",
+  "author": {
+    "name": "Tomasz Dysinski",
+    "email": "oz@bunnybones.com",
+    "url": "https://github.com/bunnybones1"
+  },
+  "dependencies": {
+    "lodash": "^2.4.1",
+    "threejs-spline-loop": "^2.0.0",
+    "threejs-spline-loop-helper": "^1.2.1"
+  },
+  "devDependencies": {
+    "loadandrunscripts": "^1.0.0",
+    "threejs-managed-view": "^2.4.0",
+    "threejs-spline-loop-prism": "^1.0.0"
+  },
+  "scripts": {
+    "test": "beefy test.js --live --open"
+  },
+  "keywords": [
+    "threejs",
+    "spline",
+    "loop"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/bunnybones1/threejs-spline-loop-prism-helper.git"
+  },
+  "homepage": "https://github.com/bunnybones1/threejs-spline-loop-prism-helper",
+  "bugs": {
+    "url": "https://github.com/bunnybones1/threejs-spline-loop-prism-helper/issues"
+  }
+}
