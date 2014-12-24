@@ -1,10 +1,34 @@
 var SplineLoopHelper = require('threejs-spline-loop-helper');
 var _ = require('lodash');
 
+
+var worldCameraPosition = new THREE.Vector3(),
+	objectVector = new THREE.Vector3();
+
+var planeNormal = new THREE.Vector3(0, 0, 1);
+var planeConstant = 0;
+var plane = new THREE.Plane(planeNormal.clone(), planeConstant);
+function rayCollision(camera, targetObject, planeMesh) {
+	worldCameraPosition.copy(camera.position);
+	camera.parent.localToWorld(worldCameraPosition);
+	objectVector.copy(targetObject.position);
+	targetObject.parent.localToWorld(objectVector);
+	objectVector.sub( worldCameraPosition ).normalize();
+	// var raycaster = new THREE.Raycaster( worldCameraPosition, objectVector );
+	// return raycaster.intersectObjects( objects );
+	plane.set(planeNormal, planeConstant);
+	plane.applyMatrix4(planeMesh.matrixWorld);
+	var ray = new THREE.Ray(worldCameraPosition, objectVector);
+	// var yeah = ray.isIntersectionPlane(plane);
+	return ray.intersectPlane(plane);
+};
+
+
 var crossSectionHelperPlaneMesh = new THREE.Mesh(
 	new THREE.PlaneGeometry(4, 4, 4, 4),
 	new THREE.MeshBasicMaterial({
 		color: 0xcfcfcf,
+		side: THREE.DoubleSide,
 		wireframe: true
 	})
 )
@@ -112,17 +136,24 @@ function SplineLoopPrismHelper(splineLoopPrism, options) {
 			var subHandle = splineLoop.helper.handles[i];
 			subHandle.helper = splineLoop.helper;
 			subHandle.superHandle = handle;
-			subHandle.activate = function() {
+			subHandle.activate = function(camera) {
 				this.active = true;
 				this.superHandle.add(crossSectionHelperPlaneMesh);
 				this.superHandle.crossSectionHelperPlaneMesh = crossSectionHelperPlaneMesh;
+				this.camera = camera;
+				this.projector
 			}.bind(subHandle);
 			subHandle.deactivate = function() {
 				this.active = false;
 				this.superHandle.remove(crossSectionHelperPlaneMesh);
 				this.superHandle.crossSectionHelperPlaneMesh = null;
+				delete this.camera;
 			}.bind(subHandle);
 			subHandle.update = function() {
+				var collision = rayCollision(this.camera, this, this.superHandle.crossSectionHelperPlaneMesh);
+				if(collision) {
+					this.position.copy(collision);
+				}
 				this.point.copy(this.position);
 				splineLoop.updateCache();
 				splineLoop.helper.update();

@@ -10,7 +10,7 @@ var onReady = function() {
 	view.camera.updateMatrixWorld();
 
 	var pointsTotal = 8;
-	var radius = 1.5;
+	var radius = 3;
 	var points = [];
 	for (var i = 0; i < pointsTotal; i++) {
 		var ratio = i / pointsTotal;
@@ -28,7 +28,7 @@ var onReady = function() {
 	};
 
 	var spline = new SplineLoop(points);
-	spline.cache(100);
+	spline.cache(400);
 
 	var splinePrism = SplineLoopPrism.createFromSplineLoopAndScalarAndOffsetY(spline, .85, .3);
 	splinePrism.cache(100);
@@ -50,47 +50,70 @@ var onReady = function() {
 	);
 	scene.add(sampleBall);
 
-	var playHandle = splinePrismHelper.handles[3];
-	playHandle.activate();
-	var playHandleOriginalPosition = playHandle.position.clone();
-	var playSubHandle = playHandle.subHandles[0];
-	var playSubHandleOriginalPosition = playSubHandle.position.clone();
+	var playHandle,
+		totalHandles,
+		playHandleOriginalPosition,
+		playSubHandle,
+		playSubHandleOriginalPosition,
+		playIndex = 1;
+
+	totalHandles = splinePrismHelper.handles.length;
 	view.renderManager.onEnterFrame.add(function() {
 		var time = (new Date()).getTime() * .00003;
 		sampleBall.position.copy(splinePrism.sample(time%1, Math.cos(time*100) * .5 + .5, Math.sin(time*100) * .5 + .5));
 		if(playHandle.active) {
 			playHandle.position.set(
-				Math.cos(time*100)*.4,
-				Math.sin(time*100)*.02,
-				Math.cos(time*150)*.25
+				(Math.cos(time*100)*2-1)*.4,
+				(Math.sin(time*100)*2-1)*.02,
+				(Math.cos(time*150)*2-1)*.25
 			).add(playHandleOriginalPosition);
 			playHandle.update();
 		}
 		if(playSubHandle.active) {
 			playSubHandle.position.set(
-				Math.cos(time*100)*.4,
-				Math.sin(time*100)*.02,
-				Math.cos(time*150)*.25
+				(Math.cos(time*100)*2-1)*.4,
+				(Math.sin(time*100)*2-1)*.02,
+				(Math.cos(time*150)*2-1)*.25
 			).add(playSubHandleOriginalPosition);
 			playSubHandle.update();
 		}
 	})
 
-	setTimeout(function() {
-		playHandle.deactivate();
-	}, 750);
+	function haveFun(callback) {
+		playIndex = (playIndex + 1) % totalHandles;
+		playHandle = splinePrismHelper.handles[playIndex];
+		playHandleOriginalPosition = playHandle.position.clone();
+		playSubHandle = playHandle.subHandles[~~(Math.random() * 4)];
+		playSubHandleOriginalPosition = playSubHandle.position.clone();
 
-	setTimeout(function() {
-		playSubHandle.activate();
-	}, 1000);
-
-	setTimeout(function() {
-		playSubHandle.deactivate();
-	}, 4000);
-
-	setTimeout(function() {
 		playHandle.activate();
-	}, 5000);
+		setTimeout(function() {
+			playHandle.deactivate();
+		}, 750);
+
+		setTimeout(function() {
+			playSubHandle.activate(view.camera);
+		}, 1000);
+
+		setTimeout(function() {
+			playSubHandle.deactivate();
+		}, 4000);
+
+		setTimeout(function() {
+			playHandle.activate();
+		}, 5000);
+
+		setTimeout(function() {
+			playHandle.deactivate();
+			if(callback) callback();
+		}, 8000);
+	}
+
+	function haveFunLoop() {
+		haveFun(haveFunLoop);
+	}
+
+	haveFunLoop();
 }
 
 var loadAndRunScripts = require('loadandrunscripts');
