@@ -1,7 +1,7 @@
 {
   "name": "threejs-spline-loop-prism-helper",
   "version": "1.0.0",
-  "description": "A Spline object with the ability to sample points in a seamless loop. Linear caching available for speed increase.",
+  "description": "A visual helper for an advanced spline loop which uses 4 spline loops to define a curved rectangular loop.",
   "main": "index.js",
   "license": "MIT",
   "author": {
