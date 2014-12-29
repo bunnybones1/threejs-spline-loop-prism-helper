@@ -48,17 +48,22 @@ function SplineLoopPrismHelper(splineLoopPrism, options) {
 	this.splineLoopPrism = splineLoopPrism;
 
 	var color = 0x9f7f5f;
-	var alwaysOnTop = true;
 	options = _.merge({
 		handleRadius: .25,
 		color: color,
-		alwaysOnTop: alwaysOnTop,
+		alwaysOnTop: true,
 		splineHelper: {
 			color: color,
-			handleRadius: .15,
-			alwaysOnTop: alwaysOnTop
+			handleRadius: .15
 		}
 	}, options || {});
+
+	this.handleMaterial = options.handleMaterial || new THREE.MeshBasicMaterial({
+		depthTest: !options.alwaysOnTop,
+		transparent: true,
+		color: options.color,
+		blending: THREE.AdditiveBlending
+	});
 
 	var splineLoops = [
 		splineLoopPrism.splineLoopInnerTop,
@@ -76,22 +81,22 @@ function SplineLoopPrismHelper(splineLoopPrism, options) {
 
 	var totalHandles = splineLoopPrism.splineLoopInnerTop.points.length;
 	var handleGeometry = new THREE.SphereGeometry(options.handleRadius);
-	var handleMaterial = new THREE.MeshBasicMaterial({
-		depthTest: false,
-		transparent: true,
-		color: color
-	});
 
 	var handles = this.handles = [];
+	var handlesOrSubhandles = this.handlesOrSubhandles = [];
+	var activeHandles = this.activeHandles = [];
 	for(var i = 0; i < totalHandles; i++) {
-		var handle = new THREE.Mesh(handleGeometry, handleMaterial);
+		var handle = new THREE.Mesh(handleGeometry, this.handleMaterial);
 		handle.renderDepth = options.alwaysOnTop ? 1 : undefined;
-		this.handles.push(handle);
+		handles.push(handle);
+		handlesOrSubhandles.push(handle);
 		handle.position.copy(splineLoopPrism.sample(i/totalHandles, .5, .5));
 		handle.subHandles = [];
 		this.add(handle);
 		handle.updateMatrixWorld();
 		handle.activate = function() {
+			if(this.active) return;
+			activeHandles.push(this);
 			this.active = true;
 			this.add(crossSectionHelperPlaneMesh);
 			this.crossSectionHelperPlaneMesh = crossSectionHelperPlaneMesh;
@@ -102,6 +107,8 @@ function SplineLoopPrismHelper(splineLoopPrism, options) {
 			});
 		}.bind(handle);
 		handle.deactivate = function() {
+			if(!this.active) return;
+			activeHandles.splice(activeHandles.indexOf(this), 1);
 			this.active = false;
 			this.remove(this.crossSectionHelperPlaneMesh);
 			this.crossSectionHelperPlaneMesh = null;
@@ -137,13 +144,19 @@ function SplineLoopPrismHelper(splineLoopPrism, options) {
 			subHandle.helper = splineLoop.helper;
 			subHandle.superHandle = handle;
 			subHandle.activate = function(camera) {
+				if(this.active) return;
+				activeHandles.push(this);
 				this.active = true;
+				this.superHandle.activate();
+				this.superHandle.update();
+				this.superHandle.deactivate();
 				this.superHandle.add(crossSectionHelperPlaneMesh);
 				this.superHandle.crossSectionHelperPlaneMesh = crossSectionHelperPlaneMesh;
 				this.camera = camera;
-				this.projector
 			}.bind(subHandle);
 			subHandle.deactivate = function() {
+				if(!this.active) return;
+				activeHandles.splice(activeHandles.indexOf(this), 1);
 				this.active = false;
 				this.superHandle.remove(crossSectionHelperPlaneMesh);
 				this.superHandle.crossSectionHelperPlaneMesh = null;
@@ -159,11 +172,16 @@ function SplineLoopPrismHelper(splineLoopPrism, options) {
 				splineLoop.helper.update();
 			}.bind(subHandle);
 			handle.subHandles.push(subHandle);
+			handlesOrSubhandles.push(subHandle);
 		});
 	}
-
 }
 
 SplineLoopPrismHelper.prototype = Object.create(THREE.Object3D.prototype);
 
+SplineLoopPrismHelper.prototype.update = function() {
+	for (var i = 0; i < this.activeHandles.length; i++) {
+		this.activeHandles[i].update();
+	};
+}
 module.exports = SplineLoopPrismHelper;
