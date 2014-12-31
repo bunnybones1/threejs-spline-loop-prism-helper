@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "lodash": "^2.4.1",
-    "threejs-spline-loop": "^2.0.0",
-    "threejs-spline-loop-helper": "^1.2.3"
+    "threejs-spline-loop": "^2.0.1",
+    "threejs-spline-loop-helper": "^1.2.4"
   },
   "devDependencies": {
     "loadandrunscripts": "^1.0.0",
